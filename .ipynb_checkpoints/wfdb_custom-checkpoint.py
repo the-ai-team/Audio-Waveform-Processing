@@ -10,7 +10,7 @@ from wfdb.io._signal import downround, upround
 from wfdb.io.annotation import Annotation
 
 
-def plot_items(s,e,signal=None, ann_samp=None, ann_sym=None, fs=None,
+def plot_items(s,e,peaks,signal=None, ann_samp=None, ann_sym=None, fs=None,
                time_units='samples', sig_name=None, sig_units=None,
                xlabel=None, ylabel=None, title=None, sig_style=[''],
                ann_style=['r*'], ecg_grids=[], figsize=None,
@@ -23,7 +23,7 @@ def plot_items(s,e,signal=None, ann_samp=None, ann_sym=None, fs=None,
     fig, axes = create_figure(n_subplots, figsize)
 
     if signal is not None:
-        plot_signal(s,e,signal, sig_len, n_sig, fs, time_units, sig_style, axes)
+        plot_signal(s,e,peaks,signal, sig_len, n_sig, fs, time_units, sig_style, axes)
 
     if ann_samp is not None:
         plot_annotation(ann_samp, n_annot, ann_sym, signal, n_sig, fs,
@@ -56,7 +56,7 @@ def plot_items(s,e,signal=None, ann_samp=None, ann_sym=None, fs=None,
     plt.show()
     
 
-def plot_signal(s,e,signal, sig_len, n_sig, fs, time_units, sig_style, axes):
+def plot_signal(s,e,peaks,signal, sig_len, n_sig, fs, time_units, sig_style, axes):
     """
     Plot signal channels.
     Parameters
@@ -101,6 +101,12 @@ def plot_signal(s,e,signal, sig_len, n_sig, fs, time_units, sig_style, axes):
     else:
         for ch in range(n_sig):
             axes[ch].plot(t[s:e], signal[s:e,ch], sig_style[ch], zorder=3)
+            x = peaks[ch][ peaks[ch] > s]
+            x = x[x<e]
+            y = signal[x,ch]
+            
+            
+            axes[ch].scatter(x, y,color='red',s=15)
             
 
 def get_wfdb_plot_items(record, annotation, plot_sym):
@@ -393,7 +399,7 @@ def label_figure(axes, n_subplots, time_units, sig_name, sig_units,
 
         
 
-def plot_wfdb(s=0,e=-1,record=None, annotation=None, plot_sym=False,
+def plot_wfdb(s=0,e=-1,peaks=None,record=None, annotation=None, plot_sym=False,
               time_units='samples', title=None, sig_style=[''],
               ann_style=['r*'], ecg_grids=[], figsize=None, return_fig=False):
     """
@@ -462,7 +468,7 @@ def plot_wfdb(s=0,e=-1,record=None, annotation=None, plot_sym=False,
                                                               annotation=annotation,
                                                               plot_sym=plot_sym)
 
-    return plot_items(s=s,e=e,signal=signal, ann_samp=ann_samp, ann_sym=ann_sym, fs=fs,
+    return plot_items(s=s,e=e,peaks=peaks,signal=signal, ann_samp=ann_samp, ann_sym=ann_sym, fs=fs,
                       time_units=time_units, ylabel=ylabel,
                       title=(title or record_name),
                       sig_style=sig_style, sig_units=sig_units,
